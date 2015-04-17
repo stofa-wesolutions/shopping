@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">shopping</string>
 
-    <string name="hello_world">Hello world!</string>
+    <!-- menu strings -->
+    <string name="action_add_to_cart">Add Article</string>
+    <string name="action_refresh_cart">Refresh Cart</string>
     <string name="action_settings">Settings</string>
 </resources>
