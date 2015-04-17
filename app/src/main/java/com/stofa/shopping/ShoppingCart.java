@@ -1,35 +1,39 @@
 package com.stofa.shopping;
 
-import java.util.ArrayList;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
-/**
- * Created by stofa on 15.04.2015.
- */
-public class ShoppingCart extends Document {
-    ArrayList<Article> cart;
 
-    private final static String TAG = Document.class.getSimpleName();
+public class ShoppingCart extends ActionBarActivity {
 
-    public ShoppingCart() {
-        cart = new ArrayList<Article>();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_shopping_cart);
     }
 
-    public ShoppingCart(ArrayList<Article> articles) {
-        cart = (ArrayList)articles;
-    }
 
-    public boolean addArticle (Article newArticle) {
-        return cart.add(newArticle);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_shopping_cart, menu);
+        return true;
     }
 
     @Override
-    public String toString() {
-        String shoppingCart = "";
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
 
-        for (int i = 0; i < cart.size(); i++) {
-            shoppingCart += cart.get(i).toString() + "\n";
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
         }
 
-        return shoppingCart;
+        return super.onOptionsItemSelected(item);
     }
 }
