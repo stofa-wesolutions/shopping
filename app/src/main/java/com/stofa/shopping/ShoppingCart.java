@@ -73,7 +73,7 @@ public class ShoppingCart extends ActionBarActivity {
 
         if (networkInfo != null && networkInfo.isConnected()) {
             Log.v(TAG, "connected !!!!");
-            new DownloadWebpageTask().execute("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles");
+            new DownloadWebpageTask().execute("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles_in_cart");
 
         } else {
             Log.v(TAG, "error, no connection available");
@@ -115,8 +115,7 @@ public class ShoppingCart extends ActionBarActivity {
                     a.setName(values.getString(1));
                     a.setToBuy(values.getBoolean(2));
 
-                    if (a.isToBuy())
-                        shoppingCart.add(a);
+                    shoppingCart.add(a);
                 }
             } catch (JSONException jsonException) {
                 Log.e("JSON_ERROR", jsonException.toString());
