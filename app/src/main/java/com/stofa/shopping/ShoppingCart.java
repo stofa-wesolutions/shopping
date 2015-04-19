@@ -1,6 +1,7 @@
 package com.stofa.shopping;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -19,6 +20,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -59,6 +61,9 @@ public class ShoppingCart extends ActionBarActivity {
         if (id == R.id.action_refresh_cart) {
             connectToDatabase();
             return true;
+        } else if (id == R.id.action_add_to_cart) {
+            Intent intent = new Intent(this, DisplayArticlesActivity.class);
+            startActivity(intent);
         } else if (id == R.id.action_settings) {
             return true;
         }
@@ -73,34 +78,38 @@ public class ShoppingCart extends ActionBarActivity {
 
         if (networkInfo != null && networkInfo.isConnected()) {
             Log.v(TAG, "connected !!!!");
-            new DownloadWebpageTask().execute("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles_in_cart");
 
+            try {
+                URL loadArticles = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles_in_cart");
+                new DownloadWebpageTask().execute(loadArticles);
+            } catch (MalformedURLException mfURLe) {
+                Log.e("ERROR", mfURLe.toString());
+            }
         } else {
             Log.v(TAG, "error, no connection available");
         }
     }
 
-    private class DownloadWebpageTask extends AsyncTask<String, Void, String> {
+    private class DownloadWebpageTask extends AsyncTask<URL, Void, JSONObject> {
         @Override
-        protected String doInBackground(String... urls) {
+        protected JSONObject doInBackground(URL... urls) {
 
             // params comes from the execute() call: params[0] is the url.
             try {
-                return downloadUrl(urls[0]);
+                return downloadUrl(urls[0].toString());
             } catch (IOException e) {
-                return "Unable to retrieve web page. URL may be invalid.";
+                return new JSONObject();
             }
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
-        protected void onPostExecute(String result) {
-            Log.v("AFTER EXECUTE: ", result);
+        protected void onPostExecute(JSONObject result) {
+            Log.v("AFTER EXECUTE: ", result.toString());
 
             TextView text = (TextView) findViewById(R.id.cart_string);
 
             try {
-                JSONObject obj = new JSONObject(result);
-                JSONArray array = obj.getJSONArray("rows");
+                JSONArray array = result.getJSONArray("rows");
 
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject article = array.getJSONObject(i);
@@ -129,41 +138,41 @@ public class ShoppingCart extends ActionBarActivity {
 
             text.setText(cart);
         }
-    }
 
-    // Reads an InputStream and converts it to a String.
-    public String readIt(InputStream stream) throws IOException {
+        // Reads an InputStream and converts it to a String.
+        private String readIt(InputStream stream) throws IOException {
 
-        String inputStreamString = new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
-        return inputStreamString;
-    }
+            String inputStreamString = new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
+            return inputStreamString;
+        }
 
-    private String downloadUrl(String myUrl) throws IOException {
-        InputStream is = null;
+        private JSONObject downloadUrl(String myUrl) throws IOException {
+            InputStream is = null;
 
-        try {
-            URL url = new URL(myUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(10000);
-            connection.setReadTimeout(10000);
-            connection.setRequestMethod("GET");
-            connection.connect();
+            try {
+                URL url = new URL(myUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                connection.setRequestMethod("GET");
+                connection.connect();
 
-            int response = connection.getResponseCode();
-            Log.d("RESPONSE", "response of http: " + response);
-            is = connection.getInputStream();
+                int response = connection.getResponseCode();
+                Log.d("RESPONSE", "response of http: " + response);
+                is = connection.getInputStream();
 
-            String contentString = readIt(is);
-            Log.v("COUCHDB RESPONSE", contentString);
+                String contentString = readIt(is);
+                Log.v("COUCHDB RESPONSE", contentString);
 
-            if (is != null)
-                is.close();
+                if (is != null)
+                    is.close();
 
-            return contentString;
+                return new JSONObject(contentString);
 
-        } catch (Exception e) {
-            Log.v("ERROR", "something went wrong with http request");
-            return "ERROR";
+            } catch (Exception e) {
+                Log.v("ERROR", "something went wrong with http request");
+                return null;
+            }
         }
     }
 }
