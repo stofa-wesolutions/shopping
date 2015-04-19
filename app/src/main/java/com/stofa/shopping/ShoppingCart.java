@@ -11,7 +11,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +27,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -31,15 +35,39 @@ public class ShoppingCart extends ActionBarActivity {
 
     private final static String TAG = ShoppingCart.class.getSimpleName();
     private ArrayList<Article> shoppingCart;
+    private ArrayAdapter adapter;
+    private ListView    listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_cart);
-        shoppingCart = new ArrayList<Article>();
+        Log.v("TAG", "Create() called");
+        init();
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.v("TAG", "Restart() called");
+        init();
+    }
 
+    private void init() {
+        shoppingCart = new ArrayList<Article>();
+        adapter = new ArrayAdapter<>(
+                getApplicationContext(), R.layout.delegate_cart, shoppingCart);
+        listView = (ListView)findViewById(R.id.listview_cart);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+                shoppingCart.remove(position);
+                adapter.notifyDataSetChanged();
+            }
+        });
+        connectToDatabase();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -63,6 +91,9 @@ public class ShoppingCart extends ActionBarActivity {
             return true;
         } else if (id == R.id.action_add_to_cart) {
             Intent intent = new Intent(this, DisplayArticlesActivity.class);
+
+            intent.putParcelableArrayListExtra("CART", shoppingCart);
+
             startActivity(intent);
         } else if (id == R.id.action_settings) {
             return true;
@@ -106,8 +137,6 @@ public class ShoppingCart extends ActionBarActivity {
         protected void onPostExecute(JSONObject result) {
             Log.v("AFTER EXECUTE: ", result.toString());
 
-            TextView text = (TextView) findViewById(R.id.cart_string);
-
             try {
                 JSONArray array = result.getJSONArray("rows");
 
@@ -125,18 +154,13 @@ public class ShoppingCart extends ActionBarActivity {
                     a.setToBuy(values.getBoolean(2));
 
                     shoppingCart.add(a);
+                    adapter.notifyDataSetChanged();
                 }
             } catch (JSONException jsonException) {
                 Log.e("JSON_ERROR", jsonException.toString());
             } catch (Exception e) {
                 Log.e("ERROR", e.toString());
             }
-
-            String cart = "";
-            for (int i = 0; i < shoppingCart.size(); i++)
-                cart += shoppingCart.get(i).toString() + "\n";
-
-            text.setText(cart);
         }
 
         // Reads an InputStream and converts it to a String.
