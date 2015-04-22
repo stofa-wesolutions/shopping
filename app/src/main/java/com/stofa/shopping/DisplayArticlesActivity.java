@@ -32,26 +32,16 @@ import java.util.Scanner;
 public class DisplayArticlesActivity extends ActionBarActivity {
 
     private final static String TAG = ShoppingCart.class.getSimpleName();
-    private ArrayList<Article> unusedArticles;
+
     private ArrayAdapter adapter;
     private ListView listView;
-    private ArrayList<Article> shoppingCart;
-    private WebConnector connector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_articles);
 
-        shoppingCart = getIntent().getParcelableArrayListExtra("CART");
-
-        init();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.v("TAG", "Restart() called");
+        adapter = new ArrayAdapter(getApplicationContext(), R.layout.delegate_cart, Listings.unusedArticles);
         init();
     }
 
@@ -64,33 +54,15 @@ public class DisplayArticlesActivity extends ActionBarActivity {
     }
 
     private void init() {
-        unusedArticles = new ArrayList<Article>();
-        adapter = new ArrayAdapter<>(
-                getApplicationContext(), R.layout.delegate_cart, unusedArticles);
         listView = (ListView)findViewById(R.id.listview_unused_articles);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                Article putIntoCart = unusedArticles.remove(position);
-                shoppingCart.add(putIntoCart);
+                Listings.moveToShoppingCart(position);
                 adapter.notifyDataSetChanged();
             }
         });
-        connectToDatabase();
-    }
-
-    private void connectToDatabase() {
-        try {
-            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles_not_in_cart");
-            if (WebConnector.connectionPossible(this, url)) {
-                unusedArticles.clear();
-                connector = new WebConnector(adapter);
-                connector.execute(url);
-            }
-        } catch (MalformedURLException malformedURL) {
-            Log.e("MALFORMED_URL", malformedURL.toString());
-        }
     }
 
     @Override
@@ -100,14 +72,7 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == android.R.id.home) {
-            Intent parentIntent = getParentActivityIntent();
-            parentIntent.putParcelableArrayListExtra("CART", shoppingCart);
-            NavUtils.navigateUpTo(this, parentIntent);
-            return true;
-
-        } else if (id == R.id.action_settings) {
+        if (id == R.id.action_settings) {
             return true;
         }
 

@@ -24,6 +24,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,62 +35,97 @@ import java.util.Scanner;
 public class ShoppingCart extends ActionBarActivity {
 
     private final static String TAG = ShoppingCart.class.getSimpleName();
-    private ArrayList<Article> shoppingCart;
+
     private ArrayAdapter adapter;
-    private ListView    listView;
+    private ListView     listView;
     private WebConnector connector;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_cart);
         Log.v("TAG", "Create() called");
-        init();
-    }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.v("TAG", "Restart() called");
+        adapter = new ArrayAdapter(getApplicationContext(), R.layout.delegate_cart, Listings.shoppingCart);
         init();
+        if (!Listings.loadedFromDatabase)
+            connectToDatabase();
     }
 
     private void init() {
-        boolean loadData = false;
-
-        shoppingCart = getIntent().getParcelableArrayListExtra("CART");
-
-        if (shoppingCart == null) {
-            shoppingCart = new ArrayList<Article>();
-            loadData = true;
-        }
-
-        adapter = new ArrayAdapter<>(
-                getApplicationContext(), R.layout.delegate_cart, shoppingCart);
-
         listView = (ListView)findViewById(R.id.listview_cart);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                shoppingCart.remove(position);
-                adapter.notifyDataSetChanged();
+                if (Listings.removeFromShoppingCart(position)) {
+                    adapter.notifyDataSetChanged();
+                }
             }
         });
-
-        if (loadData)
-            connectToDatabase();
-        else
-            adapter.notifyDataSetChanged();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
-
         inflater.inflate(R.menu.menu_shopping_cart, menu);
         return true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // save upload article states
+        for (int i = 0; i < Listings.shoppingCart.size(); i++) {
+            Article a = Listings.shoppingCart.get(i);
+            String s = "https://stofa.iriscouch.com/shopping_cart/";
+            String id = a.getId();
+            s += id;
+
+            String jsonString = a.toJSON().toString();
+
+            try {
+                URL url = new URL(s);
+                HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                httpCon.setDoOutput(true);
+                httpCon.setRequestMethod("PUT");
+                OutputStreamWriter out = new OutputStreamWriter(
+                        httpCon.getOutputStream());
+                out.write(jsonString);
+                out.close();
+            } catch (Exception e) {
+                Log.v("ERROR", "something went wrong with http request");
+            }
+        }
+
+        for (int i = 0; i < Listings.unusedArticles.size(); i++) {
+            Article a = Listings.unusedArticles.get(i);
+            String s = "https://stofa.iriscouch.com/shopping_cart/";
+            String id = a.getId();
+            s += id;
+
+            String jsonString = a.toJSON().toString();
+
+            try {
+                URL url = new URL(s);
+                HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                httpCon.setDoOutput(true);
+                httpCon.setRequestMethod("PUT");
+                OutputStreamWriter out = new OutputStreamWriter(
+                        httpCon.getOutputStream());
+                out.write(jsonString);
+                out.close();
+            } catch (Exception e) {
+                Log.v("ERROR", "something went wrong with http request");
+            }
+        }
     }
 
     @Override
@@ -102,13 +138,13 @@ public class ShoppingCart extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
 
         if (id == R.id.action_refresh_cart) {
+            Listings.shoppingCart.clear();
+            Listings.unusedArticles.clear();
+            Listings.loadedFromDatabase = false;
             connectToDatabase();
             return true;
         } else if (id == R.id.action_add_to_cart) {
             Intent intent = new Intent(this, DisplayArticlesActivity.class);
-
-            intent.putParcelableArrayListExtra("CART", shoppingCart);
-
             startActivity(intent);
         } else if (id == R.id.action_settings) {
             return true;
@@ -119,9 +155,8 @@ public class ShoppingCart extends ActionBarActivity {
 
     private void connectToDatabase() {
         try {
-            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/articles_in_cart");
-            if (WebConnector.connectionPossible(this, url)) {
-                shoppingCart.clear();
+            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/all_articles");
+            if (WebConnector.connectionPossible(this)) {
                 connector = new WebConnector(adapter);
                 connector.execute(url);
             }

@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -28,6 +29,7 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
     public WebConnector(ArrayAdapter<Article> adapter) {
         this.adapter = adapter;
     }
+
     @Override
     protected JSONObject doInBackground(URL... urls) {
         // params comes from the execute() call: params[0] is the url.
@@ -56,9 +58,14 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
                 a.setName(values.getString(1));
                 a.setToBuy(values.getBoolean(2));
 
-                adapter.add(a);
-                adapter.notifyDataSetChanged();
+                if (a.isToBuy())
+                    Listings.shoppingCart.add(a);
+                else
+                    Listings.unusedArticles.add(a);
             }
+            Listings.loadedFromDatabase = true;
+            adapter.notifyDataSetChanged();
+
         } catch (JSONException jsonException) {
             Log.e("JSON_ERROR", jsonException.toString());
         } catch (Exception e) {
@@ -82,7 +89,6 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
             connection.setRequestMethod("GET");
             connection.connect();
 
-            int response = connection.getResponseCode();
             is = connection.getInputStream();
 
             String contentString = readIt(is);
@@ -97,7 +103,7 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
         }
     }
 
-    public static boolean connectionPossible(Context context, URL url) {
+    public static boolean connectionPossible(Context context) {
         ConnectivityManager connMngr =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMngr.getActiveNetworkInfo();
