@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,16 +26,76 @@ import java.util.Scanner;
 public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
 
     ArrayAdapter<Article> adapter;
+    boolean saveDocuments;
 
     public WebConnector(ArrayAdapter<Article> adapter) {
         this.adapter = adapter;
+        this.saveDocuments = false;
+    }
+
+    public void setSaveDocuments(boolean saveDocuments) {
+        this.saveDocuments = saveDocuments;
     }
 
     @Override
     protected JSONObject doInBackground(URL... urls) {
         // params comes from the execute() call: params[0] is the url.
         try {
-            return downloadUrl(urls[0]);
+            if (saveDocuments) {
+                // save upload article states
+                for (int i = 0; i < Listings.shoppingCart.size(); i++) {
+                    Article a = Listings.shoppingCart.get(i);
+                    a.setToBuy(true);
+                    String s = "https://stofa.iriscouch.com/shopping_cart/";
+                    String id = a.getId();
+                    s += id;
+
+                    String jsonString = a.toJSON().toString();
+
+                    try {
+                        URL url = new URL(s);
+                        HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                        httpCon.setDoOutput(true);
+                        httpCon.setRequestMethod("PUT");
+                        OutputStreamWriter out = new OutputStreamWriter(
+                                httpCon.getOutputStream());
+                        out.write(jsonString);
+                        out.close();
+                        InputStream is = httpCon.getInputStream();
+                        Log.v("STREAM", readIt(is));
+                    } catch (Exception e) {
+                        Log.v("ERROR", "something went wrong with http request");
+                    }
+                }
+
+                for (int i = 0; i < Listings.unusedArticles.size(); i++) {
+                    Article a = Listings.unusedArticles.get(i);
+                    a.setToBuy(false);
+                    String s = "https://stofa.iriscouch.com/shopping_cart/";
+                    String id = a.getId();
+                    s += id;
+
+                    String jsonString = a.toJSON().toString();
+
+                    try {
+                        URL url = new URL(s);
+                        HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                        httpCon.setDoOutput(true);
+                        httpCon.setRequestMethod("PUT");
+                        OutputStreamWriter out = new OutputStreamWriter(
+                                httpCon.getOutputStream());
+                        out.write(jsonString);
+                        out.close();
+                        InputStream is = httpCon.getInputStream();
+                        Log.v("STREAM", readIt(is));
+                    } catch (Exception e) {
+                        Log.v("ERROR", e.toString());
+                    }
+                }
+                return new JSONObject();
+            } else {
+                return downloadUrl(urls[0]);
+            }
         } catch (IOException e) {
             return new JSONObject();
         }
@@ -42,6 +103,12 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
     // onPostExecute displays the results of the AsyncTask.
     @Override
     protected void onPostExecute(JSONObject result) {
+        if (saveDocuments) {
+            saveDocuments = false;
+            Listings.loadedFromDatabase = false;
+            return;
+        }
+
         try {
             JSONArray array = result.getJSONArray("rows");
 

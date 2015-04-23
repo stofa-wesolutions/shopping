@@ -43,6 +43,15 @@ public class ShoppingCart extends ActionBarActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.v(TAG, "on Destroy called");
+        try {
+            WebConnector saveDocs = new WebConnector(adapter);
+            saveDocs.setSaveDocuments(true);
+            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/all_articles");
+            saveDocs.execute(url);
+        } catch (MalformedURLException malformedURL) {
+            Log.e("MALFORMED_URL", malformedURL.toString());
+        }
     }
 
     @Override
@@ -76,56 +85,6 @@ public class ShoppingCart extends ActionBarActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_shopping_cart, menu);
         return true;
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // save upload article states
-        for (int i = 0; i < Listings.shoppingCart.size(); i++) {
-            Article a = Listings.shoppingCart.get(i);
-            String s = "https://stofa.iriscouch.com/shopping_cart/";
-            String id = a.getId();
-            s += id;
-
-            String jsonString = a.toJSON().toString();
-
-            try {
-                URL url = new URL(s);
-                HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-                httpCon.setDoOutput(true);
-                httpCon.setRequestMethod("PUT");
-                OutputStreamWriter out = new OutputStreamWriter(
-                        httpCon.getOutputStream());
-                out.write(jsonString);
-                out.close();
-            } catch (Exception e) {
-                Log.v("ERROR", "something went wrong with http request");
-            }
-        }
-
-        for (int i = 0; i < Listings.unusedArticles.size(); i++) {
-            Article a = Listings.unusedArticles.get(i);
-            String s = "https://stofa.iriscouch.com/shopping_cart/";
-            String id = a.getId();
-            s += id;
-
-            String jsonString = a.toJSON().toString();
-
-            try {
-                URL url = new URL(s);
-                HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-                httpCon.setDoOutput(true);
-                httpCon.setRequestMethod("PUT");
-                OutputStreamWriter out = new OutputStreamWriter(
-                        httpCon.getOutputStream());
-                out.write(jsonString);
-                out.close();
-            } catch (Exception e) {
-                Log.v("ERROR", "something went wrong with http request");
-            }
-        }
     }
 
     @Override
