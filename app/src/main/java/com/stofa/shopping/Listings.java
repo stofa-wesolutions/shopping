@@ -13,6 +13,7 @@ import java.util.ArrayList;
 public class Listings {
     public static ArrayList<Article> shoppingCart   = new ArrayList<Article>();
     public static ArrayList<Article> unusedArticles = new ArrayList<Article>();
+
     public static boolean loadedFromDatabase = false;
 
     public static boolean moveToShoppingCart (int index) {

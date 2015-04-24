@@ -22,6 +22,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -63,6 +64,23 @@ public class DisplayArticlesActivity extends ActionBarActivity {
                 adapter.notifyDataSetChanged();
             }
         });
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Article delete = Listings.unusedArticles.remove(position);
+
+                String s = "https://stofa.iriscouch.com/shopping_cart/";
+                String docId = delete.getId();
+                s += docId;
+
+                if (docId != null)
+                    new DeleteDocument(delete).execute(s);
+
+                return true;
+
+            }
+        });
+
     }
 
     @Override
@@ -72,10 +90,52 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_add_new_article) {
+            // open dialog
+        } else if (id == R.id.action_settings) {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class DeleteDocument extends AsyncTask<String, Void, Void> {
+        Article toDelete;
+
+        DeleteDocument(Article toDelete) {
+            this.toDelete = toDelete;
+        }
+
+        @Override
+        protected Void doInBackground(String... urls) {
+            try {
+                try {
+                    urls[0] += "?rev=" + toDelete.getRevision();
+                    URL url = new URL(urls[0]);
+                    HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                    httpCon.setRequestMethod("DELETE");
+
+                    httpCon.connect();
+                    InputStream is = httpCon.getInputStream();
+                    Log.v("STREAM", readIt(is));
+                } catch (Exception e) {
+                    Log.v("ERROR", e.toString());
+                }
+            } catch (Exception e) {
+                Log.e("ERROR", e.toString());
+            }
+            return null;
+        }
+
+        // Reads an InputStream and converts it to a String.
+        private String readIt(InputStream stream) throws IOException {
+            String inputStreamString = new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
+            return inputStreamString;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
     }
 }
