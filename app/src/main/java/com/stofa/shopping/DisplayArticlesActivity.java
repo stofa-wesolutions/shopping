@@ -6,6 +6,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -68,7 +72,7 @@ public class DisplayArticlesActivity extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Article delete = Listings.unusedArticles.remove(position);
-
+                adapter.notifyDataSetChanged();
                 String s = "https://stofa.iriscouch.com/shopping_cart/";
                 String docId = delete.getId();
                 s += docId;
@@ -92,6 +96,9 @@ public class DisplayArticlesActivity extends ActionBarActivity {
 
         if (id == R.id.action_add_new_article) {
             // open dialog
+            AddArticleDialog dialog = new AddArticleDialog(this);
+
+            dialog.show(this.getSupportFragmentManager(), "addArticle");
         } else if (id == R.id.action_settings) {
             return true;
         }
