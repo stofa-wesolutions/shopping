@@ -41,16 +41,13 @@ public class ShoppingCart extends ActionBarActivity {
     private WebConnector connector;
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         Log.v(TAG, "on Destroy called");
         try {
-            WebConnector saveDocs = new WebConnector(adapter);
-            saveDocs.setSaveDocuments(true);
-            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/all_articles");
-            saveDocs.execute(url);
-        } catch (MalformedURLException malformedURL) {
-            Log.e("MALFORMED_URL", malformedURL.toString());
+            new SaveUtils().execute();
+        } catch (Exception e) {
+            Log.e("ERROR", e.toString());
         }
     }
 
