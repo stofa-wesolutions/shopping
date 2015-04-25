@@ -99,6 +99,7 @@ public class DisplayArticlesActivity extends ActionBarActivity {
             AddArticleDialog dialog = new AddArticleDialog(this);
 
             dialog.show(this.getSupportFragmentManager(), "addArticle");
+
         } else if (id == R.id.action_settings) {
             return true;
         }
