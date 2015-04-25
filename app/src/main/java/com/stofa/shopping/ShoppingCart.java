@@ -1,10 +1,7 @@
 package com.stofa.shopping;
 
-import android.content.Context;
+
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,23 +12,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
+import android.widget.Toast;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Scanner;
+
 
 
 public class ShoppingCart extends ActionBarActivity {
@@ -40,14 +24,18 @@ public class ShoppingCart extends ActionBarActivity {
 
     private ArrayAdapter adapter;
     private ListView     listView;
-    private WebConnector connector;
+    private DbUtils      dbUtils;
+
+    public ShoppingCart() {
+        dbUtils = new DbUtils();
+    }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.v(TAG, "on Destroy called");
         try {
-            new SaveUtils().execute();
+            dbUtils.updateDocuments();
         } catch (Exception e) {
             Log.e("ERROR", e.toString());
         }
@@ -75,6 +63,9 @@ public class ShoppingCart extends ActionBarActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (Listings.removeFromShoppingCart(position)) {
                     adapter.notifyDataSetChanged();
+                    Toast.makeText(getApplicationContext(),
+                                   R.string.toast_removed_from_cart,
+                                   Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -114,14 +105,7 @@ public class ShoppingCart extends ActionBarActivity {
     }
 
     private void connectToDatabase() {
-        try {
-            URL url = new URL("https://stofa.iriscouch.com/shopping_cart/_design/shopping/_view/all_articles");
-            if (WebConnector.connectionPossible(this)) {
-                connector = new WebConnector(adapter);
-                connector.execute(url);
-            }
-        } catch (MalformedURLException malformedURL) {
-            Log.e("MALFORMED_URL", malformedURL.toString());
-        }
+        if (dbUtils.connectionPossible(this))
+            dbUtils.loadDocuments(adapter);
     }
 }

@@ -1,10 +1,5 @@
 package com.stofa.shopping;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
-import android.widget.ArrayAdapter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

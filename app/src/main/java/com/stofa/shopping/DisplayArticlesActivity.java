@@ -1,11 +1,6 @@
 package com.stofa.shopping;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.support.v4.app.NavUtils;
+
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -19,21 +14,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
+import android.widget.Toast;
 import java.util.Collections;
-import java.util.Scanner;
-
 
 public class DisplayArticlesActivity extends ActionBarActivity {
 
@@ -41,6 +23,11 @@ public class DisplayArticlesActivity extends ActionBarActivity {
 
     private ArrayAdapter adapter;
     private ListView listView;
+    private DbUtils  dbUtils;
+
+    public DisplayArticlesActivity() {
+        dbUtils = new DbUtils();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +44,7 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         super.onStop();
         Log.v(TAG, "on Stop called");
         try {
-            new SaveUtils().execute();
+            dbUtils.updateDocuments();
         } catch (Exception e) {
             Log.e("ERROR", e.toString());
         }
@@ -79,6 +66,9 @@ public class DisplayArticlesActivity extends ActionBarActivity {
             public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
                 Listings.moveToShoppingCart(position);
                 adapter.notifyDataSetChanged();
+                Toast.makeText(getApplicationContext(),
+                               R.string.toast_moved_to_cart,
+                               Toast.LENGTH_SHORT).show();
             }
         });
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -86,12 +76,13 @@ public class DisplayArticlesActivity extends ActionBarActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Article delete = Listings.unusedArticles.remove(position);
                 adapter.notifyDataSetChanged();
-                String s = "https://stofa.iriscouch.com/shopping_cart/";
+                Toast.makeText(getApplicationContext(),
+                               R.string.toast_deleted,
+                               Toast.LENGTH_SHORT).show();
                 String docId = delete.getId();
-                s += docId;
 
                 if (docId != null)
-                    new DeleteDocument(delete).execute(s);
+                    dbUtils.deleteDocument(delete);
 
                 return true;
 
@@ -118,53 +109,5 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private class DeleteDocument extends AsyncTask<String, Void, Void> {
-        Article toDelete;
-
-        DeleteDocument(Article toDelete) {
-            this.toDelete = toDelete;
-        }
-
-        @Override
-        protected Void doInBackground(String... urls) {
-            try {
-                try {
-                    URL url = new URL(urls[0]);
-                    HttpURLConnection getConnection = (HttpURLConnection) url.openConnection();
-                    getConnection.setRequestMethod("GET");
-                    getConnection.setConnectTimeout(10000);
-                    getConnection.setReadTimeout(10000);
-                    getConnection.connect();
-
-                    JSONObject docInDb = new JSONObject(readIt(getConnection.getInputStream()));
-
-                    url = new URL(urls[0] + "?rev=" + docInDb.getString("_rev"));
-                    HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-                    httpCon.setRequestMethod("DELETE");
-
-                    httpCon.connect();
-                    InputStream is = httpCon.getInputStream();
-                    Log.v("STREAM", readIt(is));
-                } catch (Exception e) {
-                    Log.v("ERROR", e.toString());
-                }
-            } catch (Exception e) {
-                Log.e("ERROR", e.toString());
-            }
-            return null;
-        }
-
-        // Reads an InputStream and converts it to a String.
-        private String readIt(InputStream stream) throws IOException {
-            String inputStreamString = new Scanner(stream, "UTF-8").useDelimiter("\\A").next();
-            return inputStreamString;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-        }
     }
 }

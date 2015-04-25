@@ -1,14 +1,19 @@
 <resources>
-    <string name="app_name">shopping</string>
+    <string name="app_name">Einkaufswagen</string>
 
     <!-- menu strings -->
     <string name="action_add_to_cart">Add Article</string>
     <string name="action_refresh_cart">Refresh Cart</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_display_articles">DisplayArticlesActivity</string>
+    <string name="title_activity_display_articles">Nicht verwendete Artikel</string>
 
     <string name="article_name">Artikelname</string>
     <string name="add_article_title">Artikel hinzufügen</string>
     <string name="add">Hinzufügen</string>
     <string name="cancel">Abbrechen</string>
+
+    <string name="toast_moved_to_cart">Artikel in den Einkaufswagen gelegt.</string>
+    <string name="toast_removed_from_cart">Artikel eingekauft.</string>
+    <string name="toast_deleted">Artikel gelöscht.</string>
+    <string name="toast_added">Neuen Artikel hinzugefügt.</string>
 </resources>

@@ -1,7 +1,5 @@
 package com.stofa.shopping;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -78,7 +76,7 @@ public class Article {
         try {
             jsonObject.put ("_rev", revision);
             jsonObject.put ("article", name);
-            jsonObject.put ("toBuy", toBuy ? "true" : "false");
+            jsonObject.put ("toBuy", toBuy);
         } catch (JSONException jsonExc) {
             Log.e("JSON_EXCEPTION", jsonExc.toString());
         }
