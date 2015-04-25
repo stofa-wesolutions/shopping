@@ -21,7 +21,8 @@ public class AddArticleDialog extends DialogFragment {
     View view;
     DbUtils dbUtils;
 
-    AddArticleDialog(Activity activity) {
+
+    public AddArticleDialog(Activity activity) {
         this.activity = activity;
         this.dbUtils  = new DbUtils();
         view = null;
@@ -40,23 +41,21 @@ public class AddArticleDialog extends DialogFragment {
         builder.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Article newArticle = new Article();
+            Article newArticle = new Article();
 
-                EditText enterName = (EditText)view.findViewById(R.id.article_name);
+            EditText enterName = (EditText)view.findViewById(R.id.article_name);
 
-                newArticle.setName(enterName.getText().toString());
-                newArticle.setToBuy(false);
+            newArticle.setName(enterName.getText().toString());
+            newArticle.setToBuy(false);
 
-                if (!newArticle.getName().equals("")) {
-                    Listings.unusedArticles.add(newArticle);
-                    Collections.sort(Listings.unusedArticles, Listings.comparator);
-                    Toast.makeText(activity.getApplicationContext(),
-                                   R.string.toast_added,
-                                   Toast.LENGTH_SHORT).show();
-                    dbUtils.createDocument(newArticle);
-                }
-
-
+            if (!newArticle.getName().equals("")) {
+                Listings.unusedArticles.add(newArticle);
+                Collections.sort(Listings.unusedArticles, Listings.comparator);
+                Toast.makeText(activity.getApplicationContext(),
+                               R.string.toast_added,
+                               Toast.LENGTH_SHORT).show();
+                dbUtils.createDocument(newArticle);
+            }
             }
         });
         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
