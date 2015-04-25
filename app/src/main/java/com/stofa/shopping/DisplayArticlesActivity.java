@@ -118,8 +118,16 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         protected Void doInBackground(String... urls) {
             try {
                 try {
-                    urls[0] += "?rev=" + toDelete.getRevision();
                     URL url = new URL(urls[0]);
+                    HttpURLConnection getConnection = (HttpURLConnection) url.openConnection();
+                    getConnection.setRequestMethod("GET");
+                    getConnection.setConnectTimeout(10000);
+                    getConnection.setReadTimeout(10000);
+                    getConnection.connect();
+
+                    JSONObject docInDb = new JSONObject(readIt(getConnection.getInputStream()));
+
+                    url = new URL(urls[0] + "?rev=" + docInDb.getString("_rev"));
                     HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
                     httpCon.setRequestMethod("DELETE");
 
