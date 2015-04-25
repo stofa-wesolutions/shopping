@@ -31,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 
@@ -46,8 +47,20 @@ public class DisplayArticlesActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_articles);
 
+        Collections.sort(Listings.unusedArticles, Listings.comparator);
         adapter = new ArrayAdapter(getApplicationContext(), R.layout.delegate_cart, Listings.unusedArticles);
         init();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.v(TAG, "on Stop called");
+        try {
+            new SaveUtils().execute();
+        } catch (Exception e) {
+            Log.e("ERROR", e.toString());
+        }
     }
 
     @Override

@@ -16,15 +16,7 @@ public class Article {
     String  revision;
     String  name;
     boolean toBuy;
-    boolean deleteArticle;
-
-    public boolean isToBuy() {
-        return toBuy;
-    }
-
-    public void setToBuy(boolean toBuy) {
-        this.toBuy = toBuy;
-    }
+    boolean dirty;
 
     private final static String TAG  = Article.class.getSimpleName();
 
@@ -34,6 +26,23 @@ public class Article {
         this.revision = null;
         this.name     = null;
         this.toBuy    = false;
+        this.dirty    = false;
+    }
+
+    public boolean isToBuy() {
+        return toBuy;
+    }
+
+    public void setToBuy(boolean toBuy) {
+        this.toBuy = toBuy;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 
     public String getRevision() {
@@ -60,14 +69,6 @@ public class Article {
         this.name = name;
     }
 
-    public boolean isToDelete() {
-        return deleteArticle;
-    }
-
-    public void setDeleteArticle(boolean delete) {
-        this.deleteArticle = delete;
-    }
-
     public String toString() {
         return name;
     }
@@ -82,5 +83,9 @@ public class Article {
             Log.e("JSON_EXCEPTION", jsonExc.toString());
         }
         return jsonObject;
+    }
+
+    public int compareTo(Article compareTo) {
+        return name.compareTo(compareTo.getName());
     }
 }

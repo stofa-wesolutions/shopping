@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -51,12 +52,12 @@ public class AddArticleDialog extends DialogFragment {
 
                 EditText enterName = (EditText)view.findViewById(R.id.article_name);
 
-
                 newArticle.setName(enterName.getText().toString());
                 newArticle.setToBuy(false);
 
                 if (!newArticle.getName().equals("")) {
                     Listings.unusedArticles.add(newArticle);
+                    Collections.sort(Listings.unusedArticles, Listings.comparator);
                     new CreateDocument(newArticle).execute("https://stofa.iriscouch.com/shopping_cart/");
                 }
 

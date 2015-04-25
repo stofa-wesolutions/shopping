@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -65,6 +66,7 @@ public class WebConnector extends AsyncTask<URL, Void, JSONObject> {
                     Listings.unusedArticles.add(a);
             }
             Listings.loadedFromDatabase = true;
+            Collections.sort(Listings.shoppingCart, Listings.comparator);
             adapter.notifyDataSetChanged();
 
         } catch (JSONException jsonException) {

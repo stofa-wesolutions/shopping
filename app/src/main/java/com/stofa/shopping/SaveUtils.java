@@ -87,12 +87,14 @@ public class SaveUtils extends AsyncTask<Void, Void, JSONObject> {
             for (int i = 0; i < saveArticles.size(); i++) {
                 Article a = saveArticles.get(i);
 
-                String s = "https://stofa.iriscouch.com/shopping_cart/";
-                String id = a.getId();
-                s += id;
+                if (a.isDirty()) {
+                    String s = "https://stofa.iriscouch.com/shopping_cart/";
+                    String id = a.getId();
+                    s += id;
 
-                new SaveDocument(a).execute(s);
-
+                    new SaveDocument(a).execute(s);
+                    a.setDirty(false);
+                }
             }
         } catch (JSONException jsonException) {
             Log.e("JSON_ERROR", jsonException.toString());

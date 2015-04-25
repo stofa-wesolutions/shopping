@@ -29,6 +29,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Scanner;
 
 
@@ -57,7 +59,9 @@ public class ShoppingCart extends ActionBarActivity {
         setContentView(R.layout.activity_shopping_cart);
         Log.v("TAG", "Create() called");
 
+        Collections.sort(Listings.shoppingCart, Listings.comparator);
         adapter = new ArrayAdapter(getApplicationContext(), R.layout.delegate_cart, Listings.shoppingCart);
+
         init();
         if (!Listings.loadedFromDatabase)
             connectToDatabase();
