@@ -31,6 +31,7 @@ public class DbUtils {
     public DbUtils() {
         dbUrl = "https://stofa.iriscouch.com/shopping_cart/";
     }
+
     public void loadDocuments(ArrayAdapter<Article> adapter) {
         try {
             URL url = new URL(dbUrl + "_design/shopping/_view/all_articles");
@@ -196,24 +197,22 @@ public class DbUtils {
 
             @Override
             protected Void doInBackground(String... urls) {
+
                 try {
-                    try {
-                        URL url = new URL(urls[0]);
-                        HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
-                        httpCon.setDoOutput(true);
-                        httpCon.setRequestMethod("PUT");
-                        OutputStreamWriter out = new OutputStreamWriter(
-                                httpCon.getOutputStream());
-                        out.write(toSave.toJSON().toString());
-                        out.close();
-                        InputStream is = httpCon.getInputStream();
-                        Log.v("STREAM", readIt(is));
-                    } catch (Exception e) {
-                        Log.v("ERROR", e.toString());
-                    }
+                    URL url = new URL(urls[0]);
+                    HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                    httpCon.setDoOutput(true);
+                    httpCon.setRequestMethod("PUT");
+                    OutputStreamWriter out = new OutputStreamWriter(
+                            httpCon.getOutputStream());
+                    out.write(toSave.toJSON().toString());
+                    out.close();
+                    InputStream is = httpCon.getInputStream();
+                    Log.v("STREAM", readIt(is));
                 } catch (Exception e) {
-                    Log.e("ERROR", e.toString());
+                    Log.v("ERROR", e.toString());
                 }
+               
                 return null;
             }
 

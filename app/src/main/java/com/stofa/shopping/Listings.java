@@ -25,6 +25,7 @@ public class Listings {
         unused.setDirty(true);
         boolean added = shoppingCart.add(unused);
         Collections.sort(unusedArticles, comparator);
+
         return added;
     }
 
